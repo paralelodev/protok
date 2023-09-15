@@ -1,0 +1,11 @@
+mykernel(array A B C, scalar N){
+  space i = {
+    lowerbound = 0
+    upperbound = N
+    stride     = 1 
+  }
+
+  kernel {
+    C[i] = A[i] + B[i]
+  }
+}
