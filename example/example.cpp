@@ -6,6 +6,7 @@ int main() {
   int B[1000] = {2};
   int C[1000] = {0};
 
-  protok::compute({.lowerbound = 0, .upperbound = N, .stride = 1},
+  protok::compute(protok::VECTOR,
+                  {.lowerbound = 0, .upperbound = N, .stride = 1},
                   [&A, &B, &C](int &i) { C[i] = A[i] + B[i]; });
 }
