@@ -7,31 +7,55 @@ struct Space {
   int stride;
 };
 
-enum Level { VECTOR, THREAD, ACCEL, RANK };
+enum class ComputingUnity { NODE, CPU, CORE, ACCEL, TEAM, THREAD, VECTOR };
+
+struct ComputingDistribution {
+  ComputingUnity BaseCU;
+  ComputingUnity DistributionCU;
+};
 
 template <typename Kernel>
-int compute(Level level, Space space, Kernel kernel) {
-  switch (level) {
-  case THREAD:
+int compute(ComputingDistribution distribution, Space space, Kernel kernel) {
+  switch (distribution.BaseCU) {
+  case ComputingUnity::CPU:
+    switch (distribution.DistributionCU) {
+    case ComputingUnity::THREAD:
 #pragma omp parallel for
-    for (int i = space.lowerbound; i < space.upperbound; i += space.stride) {
-      kernel(i);
-    }
-    break;
-  case VECTOR:
+      for (int i = space.lowerbound; i < space.upperbound; i += space.stride) {
+        kernel(i);
+      }
+      break;
+    case ComputingUnity::VECTOR:
 #pragma omp simd
-    for (int i = space.lowerbound; i < space.upperbound; i += space.stride) {
-      kernel(i);
+      for (int i = space.lowerbound; i < space.upperbound; i += space.stride) {
+        kernel(i);
+      }
+      break;
+    default:
+      std::cerr << "The provided level of parallelism inside a CPU is not "
+                   "supported yet\n";
+      exit(0);
     }
     break;
-  case ACCEL:
+
+  case ComputingUnity::ACCEL:
+    switch (distribution.DistributionCU) {
+    case ComputingUnity::TEAM:
 #pragma omp target teams distribute
-    for (int i = space.lowerbound; i < space.upperbound; i += space.stride) {
-      kernel(i);
+      for (int i = space.lowerbound; i < space.upperbound; i += space.stride) {
+        kernel(i);
+      }
+      break;
+    default:
+      std::cerr
+          << "The provided level of parallelism inside an accelerator is not "
+             "supported yet\n";
+      exit(0);
     }
     break;
-  case RANK:
-    std::cerr << "Rank level parallelism not supported yet\n";
+
+  default:
+    std::cerr << "The provided base computing unity is not supported yet\n";
     exit(0);
   }
 

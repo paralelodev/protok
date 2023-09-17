@@ -5,7 +5,7 @@ mykernel(array A B C, scalar N){
     stride     = 1 
   }
 
-  kernel on vector {
+  cpu kernel on threads {
     C[i] = A[i] + B[i]
   }
 }
