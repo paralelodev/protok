@@ -1,11 +1,33 @@
-mykernel(array A B C, scalar N){
+arch { 
+  default {
+    cluster:node:cpu:core:thread:vector
+                    :thread:vector
+                    :vector
+    cluster:node:accel:team:thread:vector
+                      :thread:vector
+  }
+}
+
+mykernelcpu(array A B C, scalar N){
   space i = {
     lowerbound = 0
     upperbound = N
     stride     = 1 
   }
 
-  cpu kernel on threads {
+  cpu kernel on thread {
     C[i] = A[i] + B[i]
+  }
+}
+
+mykernelaccel(array A B C, scalar N){
+  space i = {
+    lowerbound = 0
+    upperbound = N
+    stride     = 1 
+  }
+
+  arch.default: accel kernel on teams {
+    A[i] = B[i] * C[i]
   }
 }
