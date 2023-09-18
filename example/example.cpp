@@ -12,4 +12,9 @@ int main() {
       {.BaseCU = ComputingUnity::CPU, .DistributionCU = ComputingUnity::THREAD},
       {.lowerbound = 0, .upperbound = N, .stride = 1},
       [&A, &B, &C](int &i) { C[i] = A[i] + B[i]; });
+
+  compute(
+      {.BaseCU = ComputingUnity::ACCEL, .DistributionCU = ComputingUnity::THREAD},
+      {.lowerbound = 0, .upperbound = N, .stride = 1},
+      [&A, &B, &C](int &i) { A[i] = B[i] * C[i]; });
 }
