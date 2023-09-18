@@ -15,6 +15,8 @@ set(CMAKE_CXX_FLAGS "-Wall -Wextra")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 include_directories(include)
+include_directories(third-party/include)
 
 add_subdirectory(lib)
 add_subdirectory(example)
+add_subdirectory(benchmark)
