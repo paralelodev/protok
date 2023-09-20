@@ -1,33 +1,37 @@
 arch { 
-  default {
-    cluster:node:cpu:core:thread:vector
+  cluster:node:cpu:core:thread:vector
+                  :thread:vector
+                  :vector
+  cluster:node:accel:team:thread:vector
                     :thread:vector
-                    :vector
-    cluster:node:accel:team:thread:vector
-                      :thread:vector
-  }
-}
+} supercomputer as default
 
-mykernelcpu(array A B C, scalar N){
-  space i = {
+cpu kernel on thread (array A B C, scalar N){
+  space {
     lowerbound = 0
     upperbound = N
     stride     = 1 
-  }
+  } i
 
-  cpu kernel on thread {
-    C[i] = A[i] + B[i]
-  }
-}
+  C[i] = A[i] + B[i]
+} mykernelcpu
 
-mykernelaccel(array A B C, scalar N){
-  space i = {
+supercomputer: accel kernel on teams (array A B C, scalar N){
+  space {
     lowerbound = 0
     upperbound = N
     stride     = 1 
-  }
+  } i
 
-  arch.default: accel kernel on teams {
-    A[i] = B[i] * C[i]
-  }
-}
+  A[i] = B[i] * C[i]
+} mykernelaccel
+
+cpu kernel on thread (matrix A B C, scalar N){
+  space {
+    lowerbound = 0
+    upperbound = N
+    stride     = 1 
+  } i j
+
+  C[i][j] = A[i][j] + B[i][j]
+} mykernelmatrices
