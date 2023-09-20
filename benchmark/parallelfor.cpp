@@ -9,10 +9,8 @@ static void benchmarkProtok(std::vector<int> A, std::vector<int> B,
   double itime, ftime, exec_time;
   itime = omp_get_wtime();
 
-  compute(
-      {.BaseCU = ComputingUnity::CPU, .DistributionCU = ComputingUnity::THREAD},
-      {.lowerbound = 0, .upperbound = N, .stride = 1},
-      [&A, &B, &C](int &i) { C[i] = A[i] + B[i]; });
+  compute(Distributions::CpuOnThreads(), {0, N, 1},
+          [&A, &B, &C](int &i) { C[i] = A[i] + B[i]; });
 
   ftime = omp_get_wtime();
   exec_time = ftime - itime;
