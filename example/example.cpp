@@ -8,13 +8,12 @@ int main() {
   int B[1000];
   int C[1000];
 
-  Space I = {.lowerbound = 0, .upperbound = N, .stride = 1};
+  compute(
+      {.BaseCU = ComputingUnity::CPU, .DistributionCU = ComputingUnity::THREAD},
+      {.lowerbound = 0, .upperbound = N, .stride = 1},
+      [&A, &B, &C](int &i) { C[i] = A[i] + B[i]; });
 
-  compute(Distributions::CpuOnThreads(), I,
-          [&A, &B, &C](int &i) { C[i] = A[i] + B[i]; });
-
-  compute(Distributions::AccelOnTeams(),
-          {.lowerbound = 0, .upperbound = N, .stride = 1},
+  compute(Distributions::AccelOnTeams(), {0, N, 1},
           [&A, &B, &C](int &i) { A[i] = B[i] * C[i]; });
 
   int M = 100;
@@ -22,8 +21,7 @@ int main() {
   int E[100][100];
   int F[100][100];
 
-  Space X, Y = {.lowerbound = 0, .upperbound = M, .stride = 1};
-
+  Space X, Y = {0, M, 1};
   compute(Distributions::CpuOnThreads(), X, Y,
           [&D, &E, &F](int &i, int &j) { F[i][j] = D[i][j] * E[i][j]; });
 }
