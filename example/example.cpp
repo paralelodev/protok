@@ -28,4 +28,18 @@ int main() {
   Space X, Y = {0, M, 1};
   compute(Distributions::CpuOnThreads(), X, Y,
           [&D, &E, &F](int &i, int &j) { F[i][j] = D[i][j] * E[i][j]; });
+
+  // matrix multiplication
+
+  int L = 100;
+  int G[100][100];
+  int H[100][100];
+  int I[100][100];
+
+  // data initialization goes here ...
+
+  Space S, T, U = {0, L, 1};
+  compute(
+      Distributions::CpuOnThreads(), S, T, U,
+      [&G, &H, &I](int &i, int &j, int &k) { I[i][j] += G[i][k] * H[k][j]; });
 }

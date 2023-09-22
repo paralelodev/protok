@@ -35,3 +35,13 @@ cpu kernel on thread (matrix A B C, scalar N){
 
   C[i][j] = A[i][j] + B[i][j]
 } mykernelmatrices
+
+cpu kernel on thread (matrix A B C, scalar N){
+  space {
+    lowerbound = 0
+    upperbound = N
+    stride     = 1 
+  } i j k
+
+  C[i][j] += A[i][k] + B[k][j]
+} matmul

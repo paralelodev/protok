@@ -134,4 +134,74 @@ int compute(ComputingDistribution distribution, Space outerspace,
 
   return 0;
 }
+
+template <typename Kernel>
+int compute(ComputingDistribution distribution, Space outerspace,
+            Space middlespace, Space innerspace, Kernel kernel) {
+  switch (distribution.BaseCU) {
+  case ComputingUnity::CPU:
+    switch (distribution.DistributionCU) {
+    case ComputingUnity::THREAD:
+#pragma omp parallel for collapse(3)
+      for (int i = outerspace.lowerbound; i < outerspace.upperbound;
+           i += outerspace.stride) {
+        for (int j = middlespace.lowerbound; j < middlespace.upperbound;
+             j += middlespace.stride) {
+          for (int k = innerspace.lowerbound; k < innerspace.upperbound;
+               k += innerspace.stride) {
+            kernel(i, j, k);
+          }
+        }
+      }
+      break;
+    case ComputingUnity::VECTOR:
+#pragma omp simd collapse(3)
+      for (int i = outerspace.lowerbound; i < outerspace.upperbound;
+           i += outerspace.stride) {
+        for (int j = middlespace.lowerbound; j < middlespace.upperbound;
+             j += middlespace.stride) {
+          for (int k = innerspace.lowerbound; k < innerspace.upperbound;
+               k += innerspace.stride) {
+            kernel(i, j, k);
+          }
+        }
+      }
+      break;
+    default:
+      std::cerr << "The provided level of parallelism inside a CPU is not "
+                   "supported yet\n";
+      exit(0);
+    }
+    break;
+
+  case ComputingUnity::ACCEL:
+    switch (distribution.DistributionCU) {
+    case ComputingUnity::TEAM:
+#pragma omp target teams distribute collapse(3)
+      for (int i = outerspace.lowerbound; i < outerspace.upperbound;
+           i += outerspace.stride) {
+        for (int j = middlespace.lowerbound; j < middlespace.upperbound;
+             j += middlespace.stride) {
+          for (int k = innerspace.lowerbound; k < innerspace.upperbound;
+               k += innerspace.stride) {
+            kernel(i, j, k);
+          }
+        }
+      }
+      break;
+    default:
+      std::cerr
+          << "The provided level of parallelism inside an accelerator is not "
+             "supported yet\n";
+      exit(0);
+    }
+    break;
+
+  default:
+    std::cerr << "The provided base computing unity is not supported yet\n";
+    exit(0);
+  }
+
+  return 0;
+}
 } // namespace protok
