@@ -3,6 +3,8 @@
 using namespace protok;
 
 int main() {
+  // one-to-one addition of vectors
+
   int N = 1000;
   int A[1000];
   int B[1000];
@@ -15,8 +17,12 @@ int main() {
       {.lowerbound = 0, .upperbound = N, .stride = 1},
       [&A, &B, &C](int &i) { C[i] = A[i] + B[i]; });
 
+  // one-to-one multiplication of vectors
+
   compute(Distributions::AccelOnTeams(), {0, N, 1},
           [&A, &B, &C](int &i) { A[i] = B[i] * C[i]; });
+
+  // one-to-one multiplication of matrices
 
   int M = 100;
   int D[100][100];
