@@ -8,6 +8,8 @@ int main() {
   int B[1000];
   int C[1000];
 
+  // data initialization goes here ...
+
   compute(
       {.BaseCU = ComputingUnity::CPU, .DistributionCU = ComputingUnity::THREAD},
       {.lowerbound = 0, .upperbound = N, .stride = 1},
@@ -20,6 +22,8 @@ int main() {
   int D[100][100];
   int E[100][100];
   int F[100][100];
+
+  // data initialization goes here ...
 
   Space X, Y = {0, M, 1};
   compute(Distributions::CpuOnThreads(), X, Y,

@@ -13,9 +13,11 @@ using namespace protok;
 
 int main() {
   int N = 1000;
-  int A[1000] = {1};
-  int B[1000] = {2};
-  int C[1000] = {0};
+  int A[1000];
+  int B[1000];
+  int C[1000];
+
+  // data initialization goes here ...
 
   compute(
       {.BaseCU = ComputingUnity::CPU, .DistributionCU = ComputingUnity::THREAD},
