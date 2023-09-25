@@ -45,5 +45,5 @@ cpu kernel on thread (matrix A B C, scalar N){
 
   dimension k = i
 
-  C[i][j] += A[i][k] + B[k][j]
+  C[i][j] += A[i][k] * B[k][j]
 } matmul
