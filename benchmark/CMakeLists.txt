@@ -7,3 +7,10 @@ target_link_libraries(parallelfor
   PRIVATE
   protok
   )
+
+add_executable(matmul matmul.cpp)
+
+target_link_libraries(matmul
+  PRIVATE
+  protok
+  )
