@@ -1,10 +1,15 @@
+#include "macros.h"
 #include <iostream>
 
 namespace protok {
-struct Space {
-  int lowerbound;
-  int upperbound;
-  int stride;
+
+enum class RangeType { SPACE, DIMENSION };
+
+struct Range {
+  int lowerbound = 0;
+  int upperbound = 0;
+  int stride = 1;
+  RangeType type = RangeType::SPACE;
 };
 
 enum class ComputingUnity { NODE, CPU, CORE, ACCEL, TEAM, THREAD, VECTOR };
@@ -27,20 +32,81 @@ struct Distributions {
 };
 
 template <typename Kernel>
-int compute(ComputingDistribution distribution, Space space, Kernel kernel) {
+int compute(ComputingDistribution distribution, Range range, Kernel kernel) {
+  if (range.type != RangeType::SPACE) {
+    std::cerr << "The range must be of space type\n";
+    exit(0);
+  }
+
   switch (distribution.BaseCU) {
   case ComputingUnity::CPU:
     switch (distribution.DistributionCU) {
     case ComputingUnity::THREAD:
-#pragma omp parallel for
-      for (int i = space.lowerbound; i < space.upperbound; i += space.stride) {
-        kernel(i);
+      PARALLELFOR_1D(range)
+      break;
+    case ComputingUnity::VECTOR:
+      SIMD_1D(range)
+      break;
+    default:
+      std::cerr << "The provided level of parallelism inside a CPU is not "
+                   "supported yet\n";
+      exit(0);
+    }
+    break;
+
+  case ComputingUnity::ACCEL:
+    switch (distribution.DistributionCU) {
+    case ComputingUnity::TEAM:
+      TARGET_1D(range)
+      break;
+    default:
+      std::cerr
+          << "The provided level of parallelism inside an accelerator is not "
+             "supported yet\n";
+      exit(0);
+    }
+    break;
+
+  default:
+    std::cerr << "The provided base computing unity is not supported yet\n";
+    exit(0);
+  }
+
+  return 0;
+}
+
+template <typename Kernel>
+int compute(ComputingDistribution distribution, Range outerrange,
+            Range innerrange, Kernel kernel) {
+  if (outerrange.type != RangeType::SPACE) {
+    std::cerr << "The outer range must be of space type\n";
+    exit(0);
+  }
+
+  // Set the collapse level
+  int collapseLevel = innerrange.type == RangeType::DIMENSION ? 1 : 2;
+
+  switch (distribution.BaseCU) {
+  case ComputingUnity::CPU:
+    switch (distribution.DistributionCU) {
+    case ComputingUnity::THREAD:
+      switch (collapseLevel) {
+      case 2:
+        PARALLELFOR_2D_C2(outerrange, innerrange)
+        break;
+      default:
+        PARALLELFOR_2D(outerrange, innerrange)
+        break;
       }
       break;
     case ComputingUnity::VECTOR:
-#pragma omp simd
-      for (int i = space.lowerbound; i < space.upperbound; i += space.stride) {
-        kernel(i);
+      switch (collapseLevel) {
+      case 2:
+        SIMD_2D_C2(outerrange, innerrange)
+        break;
+      default:
+        SIMD_2D(outerrange, innerrange)
+        break;
       }
       break;
     default:
@@ -53,9 +119,13 @@ int compute(ComputingDistribution distribution, Space space, Kernel kernel) {
   case ComputingUnity::ACCEL:
     switch (distribution.DistributionCU) {
     case ComputingUnity::TEAM:
-#pragma omp target teams distribute
-      for (int i = space.lowerbound; i < space.upperbound; i += space.stride) {
-        kernel(i);
+      switch (collapseLevel) {
+      case 2:
+        TARGET_2D_C2(outerrange, innerrange)
+        break;
+      default:
+        TARGET_2D(outerrange, innerrange)
+        break;
       }
       break;
     default:
@@ -75,96 +145,53 @@ int compute(ComputingDistribution distribution, Space space, Kernel kernel) {
 }
 
 template <typename Kernel>
-int compute(ComputingDistribution distribution, Space outerspace,
-            Space innerspace, Kernel kernel) {
-  switch (distribution.BaseCU) {
-  case ComputingUnity::CPU:
-    switch (distribution.DistributionCU) {
-    case ComputingUnity::THREAD:
-#pragma omp parallel for collapse(2)
-      for (int i = outerspace.lowerbound; i < outerspace.upperbound;
-           i += outerspace.stride) {
-        for (int j = innerspace.lowerbound; j < innerspace.upperbound;
-             j += innerspace.stride) {
-          kernel(i, j);
-        }
-      }
-      break;
-    case ComputingUnity::VECTOR:
-#pragma omp simd collapse(2)
-      for (int i = outerspace.lowerbound; i < outerspace.upperbound;
-           i += outerspace.stride) {
-        for (int j = innerspace.lowerbound; j < innerspace.upperbound;
-             j += innerspace.stride) {
-          kernel(i, j);
-        }
-      }
-      break;
-    default:
-      std::cerr << "The provided level of parallelism inside a CPU is not "
-                   "supported yet\n";
-      exit(0);
-    }
-    break;
-
-  case ComputingUnity::ACCEL:
-    switch (distribution.DistributionCU) {
-    case ComputingUnity::TEAM:
-#pragma omp target teams distribute collapse(2)
-      for (int i = outerspace.lowerbound; i < outerspace.upperbound;
-           i += outerspace.stride) {
-        for (int j = innerspace.lowerbound; j < innerspace.upperbound;
-             j += innerspace.stride) {
-          kernel(i, j);
-        }
-      }
-      break;
-    default:
-      std::cerr
-          << "The provided level of parallelism inside an accelerator is not "
-             "supported yet\n";
-      exit(0);
-    }
-    break;
-
-  default:
-    std::cerr << "The provided base computing unity is not supported yet\n";
+int compute(ComputingDistribution distribution, Range outerrange,
+            Range middlerange, Range innerrange, Kernel kernel) {
+  if (outerrange.type != RangeType::SPACE) {
+    std::cerr << "The outer range must be of space type\n";
     exit(0);
   }
 
-  return 0;
-}
+  // Set the collapse level
+  int collapseLevel = 1;
+  if (middlerange.type == RangeType::SPACE) {
+    collapseLevel++;
+  }
+  if (innerrange.type == RangeType::SPACE) {
+    if (middlerange.type == RangeType::DIMENSION) {
+      std::cerr << "The inner range must be of dimension type too\n";
+      exit(0);
+    }
+    collapseLevel++;
+  }
 
-template <typename Kernel>
-int compute(ComputingDistribution distribution, Space outerspace,
-            Space middlespace, Space innerspace, Kernel kernel) {
   switch (distribution.BaseCU) {
   case ComputingUnity::CPU:
     switch (distribution.DistributionCU) {
     case ComputingUnity::THREAD:
-#pragma omp parallel for collapse(3)
-      for (int i = outerspace.lowerbound; i < outerspace.upperbound;
-           i += outerspace.stride) {
-        for (int j = middlespace.lowerbound; j < middlespace.upperbound;
-             j += middlespace.stride) {
-          for (int k = innerspace.lowerbound; k < innerspace.upperbound;
-               k += innerspace.stride) {
-            kernel(i, j, k);
-          }
-        }
+      switch (collapseLevel) {
+      case 2:
+        PARALLELFOR_3D_C2(outerrange, middlerange, innerrange)
+        break;
+      case 3:
+        PARALLELFOR_3D_C3(outerrange, middlerange, innerrange)
+        break;
+      default:
+        PARALLELFOR_3D(outerrange, middlerange, innerrange)
+        break;
       }
       break;
     case ComputingUnity::VECTOR:
-#pragma omp simd collapse(3)
-      for (int i = outerspace.lowerbound; i < outerspace.upperbound;
-           i += outerspace.stride) {
-        for (int j = middlespace.lowerbound; j < middlespace.upperbound;
-             j += middlespace.stride) {
-          for (int k = innerspace.lowerbound; k < innerspace.upperbound;
-               k += innerspace.stride) {
-            kernel(i, j, k);
-          }
-        }
+      switch (collapseLevel) {
+      case 2:
+        SIMD_3D_C2(outerrange, middlerange, innerrange)
+        break;
+      case 3:
+        SIMD_3D_C3(outerrange, middlerange, innerrange)
+        break;
+      default:
+        SIMD_3D(outerrange, middlerange, innerrange)
+        break;
       }
       break;
     default:
@@ -177,16 +204,16 @@ int compute(ComputingDistribution distribution, Space outerspace,
   case ComputingUnity::ACCEL:
     switch (distribution.DistributionCU) {
     case ComputingUnity::TEAM:
-#pragma omp target teams distribute collapse(3)
-      for (int i = outerspace.lowerbound; i < outerspace.upperbound;
-           i += outerspace.stride) {
-        for (int j = middlespace.lowerbound; j < middlespace.upperbound;
-             j += middlespace.stride) {
-          for (int k = innerspace.lowerbound; k < innerspace.upperbound;
-               k += innerspace.stride) {
-            kernel(i, j, k);
-          }
-        }
+      switch (collapseLevel) {
+      case 2:
+        TARGET_3D_C2(outerrange, middlerange, innerrange)
+        break;
+      case 3:
+        TARGET_3D_C3(outerrange, middlerange, innerrange)
+        break;
+      default:
+        TARGET_3D(outerrange, middlerange, innerrange)
+        break;
       }
       break;
     default:

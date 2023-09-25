@@ -21,7 +21,7 @@ int main() {
 
   compute(
       {.BaseCU = ComputingUnity::CPU, .DistributionCU = ComputingUnity::THREAD},
-      {.lowerbound = 0, .upperbound = N, .stride = 1},
+      {.lowerbound = 0, .upperbound = N, .stride = 1, .type = RangeType::SPACE},
       [&A, &B, &C](int &i) { C[i] = A[i] + B[i]; });
 }
 ```
