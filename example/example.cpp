@@ -14,7 +14,7 @@ int main() {
 
   compute(
       {.BaseCU = ComputingUnity::CPU, .DistributionCU = ComputingUnity::THREAD},
-      {.lowerbound = 0, .upperbound = N, .stride = 1},
+      {.lowerbound = 0, .upperbound = N, .stride = 1, .type = RangeType::SPACE},
       [&A, &B, &C](int &i) { C[i] = A[i] + B[i]; });
 
   // one-to-one multiplication of vectors
@@ -31,7 +31,7 @@ int main() {
 
   // data initialization goes here ...
 
-  Space X, Y = {0, M, 1};
+  Range X, Y = {0, M, 1, RangeType::SPACE};
   compute(Distributions::CpuOnThreads(), X, Y,
           [&D, &E, &F](int &i, int &j) { F[i][j] = D[i][j] * E[i][j]; });
 
@@ -44,7 +44,9 @@ int main() {
 
   // data initialization goes here ...
 
-  Space S, T, U = {0, L, 1};
+  Range S, T = {0, L, 1, RangeType::SPACE};
+  Range U = {0, L, 1, RangeType::DIMENSION};
+
   compute(
       Distributions::CpuOnThreads(), S, T, U,
       [&G, &H, &I](int &i, int &j, int &k) { I[i][j] += G[i][k] * H[k][j]; });

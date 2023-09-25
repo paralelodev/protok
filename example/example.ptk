@@ -41,7 +41,9 @@ cpu kernel on thread (matrix A B C, scalar N){
     lowerbound = 0
     upperbound = N
     stride     = 1 
-  } i j k
+  } i j
+
+  dimension k = i
 
   C[i][j] += A[i][k] + B[k][j]
 } matmul
