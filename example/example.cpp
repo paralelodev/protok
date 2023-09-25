@@ -31,7 +31,8 @@ int main() {
 
   // data initialization goes here ...
 
-  Range X, Y = {0, M, 1, RangeType::SPACE};
+  Range X = {0, M, 1, RangeType::SPACE};
+  Range Y = {0, M, 1, RangeType::SPACE};
   compute(Distributions::CpuOnThreads(), X, Y,
           [&D, &E, &F](int &i, int &j) { F[i][j] = D[i][j] * E[i][j]; });
 
@@ -44,7 +45,8 @@ int main() {
 
   // data initialization goes here ...
 
-  Range S, T = {0, L, 1, RangeType::SPACE};
+  Range S = {0, L, 1, RangeType::SPACE};
+  Range T = {0, L, 1, RangeType::SPACE};
   Range U = {0, L, 1, RangeType::DIMENSION};
 
   compute(
