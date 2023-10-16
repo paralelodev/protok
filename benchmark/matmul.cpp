@@ -27,7 +27,7 @@ static void benchmarkOpenMP(Matrix A, Matrix B, Matrix C, int N) {
   double itime, ftime, exec_time;
   itime = omp_get_wtime();
 
-#pragma omp parallel for collapse(2)
+#pragma omp parallel for collapse(2) firstprivate(N)
   for (int i = 0; i < N; i++) {
     for (int j = 0; j < N; j++) {
       for (int k = 0; k < N; k++) {

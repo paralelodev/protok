@@ -32,8 +32,9 @@ struct Distributions {
 };
 
 template <typename Kernel>
-int compute(ComputingDistribution distribution, Range range, Kernel kernel) {
-  if (range.type != RangeType::SPACE) {
+int compute(ComputingDistribution distribution, Range outerrange,
+            Kernel kernel) {
+  if (outerrange.type != RangeType::SPACE) {
     std::cerr << "The range must be of space type\n";
     exit(0);
   }
@@ -42,10 +43,10 @@ int compute(ComputingDistribution distribution, Range range, Kernel kernel) {
   case ComputingUnity::CPU:
     switch (distribution.DistributionCU) {
     case ComputingUnity::THREAD:
-      PARALLELFOR_1D(range)
+      PARALLELFOR_1D(outerrange)
       break;
     case ComputingUnity::VECTOR:
-      SIMD_1D(range)
+      SIMD_1D(outerrange)
       break;
     default:
       std::cerr << "The provided level of parallelism inside a CPU is not "
@@ -57,7 +58,7 @@ int compute(ComputingDistribution distribution, Range range, Kernel kernel) {
   case ComputingUnity::ACCEL:
     switch (distribution.DistributionCU) {
     case ComputingUnity::TEAM:
-      TARGET_1D(range)
+      TARGET_1D(outerrange)
       break;
     default:
       std::cerr
@@ -77,14 +78,14 @@ int compute(ComputingDistribution distribution, Range range, Kernel kernel) {
 
 template <typename Kernel>
 int compute(ComputingDistribution distribution, Range outerrange,
-            Range innerrange, Kernel kernel) {
+            Range middlerange, Kernel kernel) {
   if (outerrange.type != RangeType::SPACE) {
     std::cerr << "The outer range must be of space type\n";
     exit(0);
   }
 
   // Set the collapse level
-  int collapseLevel = innerrange.type == RangeType::DIMENSION ? 1 : 2;
+  int collapseLevel = middlerange.type == RangeType::DIMENSION ? 1 : 2;
 
   switch (distribution.BaseCU) {
   case ComputingUnity::CPU:
@@ -92,20 +93,20 @@ int compute(ComputingDistribution distribution, Range outerrange,
     case ComputingUnity::THREAD:
       switch (collapseLevel) {
       case 2:
-        PARALLELFOR_2D_C2(outerrange, innerrange)
+        PARALLELFOR_2D_C2(outerrange, middlerange)
         break;
       default:
-        PARALLELFOR_2D(outerrange, innerrange)
+        PARALLELFOR_2D(outerrange, middlerange)
         break;
       }
       break;
     case ComputingUnity::VECTOR:
       switch (collapseLevel) {
       case 2:
-        SIMD_2D_C2(outerrange, innerrange)
+        SIMD_2D_C2(outerrange, middlerange)
         break;
       default:
-        SIMD_2D(outerrange, innerrange)
+        SIMD_2D(outerrange, middlerange)
         break;
       }
       break;
@@ -121,10 +122,10 @@ int compute(ComputingDistribution distribution, Range outerrange,
     case ComputingUnity::TEAM:
       switch (collapseLevel) {
       case 2:
-        TARGET_2D_C2(outerrange, innerrange)
+        TARGET_2D_C2(outerrange, middlerange)
         break;
       default:
-        TARGET_2D(outerrange, innerrange)
+        TARGET_2D(outerrange, middlerange)
         break;
       }
       break;

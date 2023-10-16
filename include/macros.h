@@ -1,14 +1,14 @@
-#define PARALLELFOR _Pragma("omp parallel for")
+#define PARALLELFOR _Pragma("omp parallel for firstprivate(outerrange)")
 #define SIMD _Pragma("omp simd")
-#define TARGET _Pragma("omp target teams distribute")
+#define TARGET _Pragma("omp target teams distribute firstprivate(outerrange)")
 
-#define PARALLELFOR_COLLAPSE2 _Pragma("omp parallel for collapse(2)")
+#define PARALLELFOR_COLLAPSE2 _Pragma("omp parallel for collapse(2) firstprivate(outerrange, middlerange)")
 #define SIMD_COLLAPSE2 _Pragma("omp simd collapse(2)")
-#define TARGET_COLLAPSE2 _Pragma("omp target teams distribute collapse(2)")
+#define TARGET_COLLAPSE2 _Pragma("omp target teams distribute collapse(2) firstprivate(outerrange, middlerange)")
 
-#define PARALLELFOR_COLLAPSE3 _Pragma("omp parallel for collapse(3)")
+#define PARALLELFOR_COLLAPSE3 _Pragma("omp parallel for collapse(3) firstprivate(outerrange, middlerange, innerrange)")
 #define SIMD_COLLAPSE3 _Pragma("omp simd collapse(3)")
-#define TARGET_COLLAPSE3 _Pragma("omp target teams distribute collapse(3)")
+#define TARGET_COLLAPSE3 _Pragma("omp target teams distribute collapse(3) firstprivate(outerrange, middlerange, innerrange)")
 
 #define KERNEL_1D(i)                                                           \
   { kernel(i); }
