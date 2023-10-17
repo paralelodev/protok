@@ -15,8 +15,8 @@ static void benchmarkProtok(Matrix A, Matrix B, Matrix C, int N) {
   Range Z = {0, N, 1, RangeType::DIMENSION};
 
   compute(
-      Distributions::CpuOnThreads(), X, Y, Z,
-      [&A, &B, &C](int &i, int &j, int &k) { C[i][j] += A[i][k] * B[k][j]; });
+      [&A, &B, &C](int &i, int &j, int &k) { C[i][j] += A[i][k] * B[k][j]; }, X,
+      Y, Z);
 
   ftime = omp_get_wtime();
   exec_time = ftime - itime;

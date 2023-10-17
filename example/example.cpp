@@ -11,10 +11,11 @@ static void vector_add() {
 
   // data initialization goes here ...
 
-  compute(
-      {.BaseCU = ComputingUnity::CPU, .DistributionCU = ComputingUnity::THREAD},
-      {.lowerbound = 0, .upperbound = N, .stride = 1, .type = RangeType::SPACE},
-      [&A, &B, &C](int &i) { C[i] = A[i] + B[i]; });
+  compute([&A, &B, &C](int &i) { C[i] = A[i] + B[i]; },
+          {.lowerbound = 0,
+           .upperbound = N,
+           .stride = 1,
+           .type = RangeType::SPACE});
 }
 
 // one-to-one multiplication of vectors
@@ -26,8 +27,8 @@ static void vector_mul() {
 
   // data initialization goes here ...
 
-  compute(Distributions::AccelOnTeams(), {0, N, 1},
-          [&A, &B, &C](int &i) { A[i] = B[i] * C[i]; });
+  compute([&A, &B, &C](int &i) { A[i] = B[i] * C[i]; },
+          {0, N, 1, RangeType::SPACE}, Distributions::AccelOnTeams());
 }
 
 // one-to-one multiplication of matrices
@@ -41,8 +42,7 @@ static void matrix_mul_naive() {
 
   Range X = {0, N, 1, RangeType::SPACE};
   Range Y = {0, N, 1, RangeType::SPACE};
-  compute(Distributions::CpuOnThreads(), X, Y,
-          [&A, &B, &C](int &i, int &j) { C[i][j] = A[i][j] * B[i][j]; });
+  compute([&A, &B, &C](int &i, int &j) { C[i][j] = A[i][j] * B[i][j]; }, X, Y);
 }
 
 // matrix multiplication
@@ -59,8 +59,8 @@ static void matrix_mul() {
   Range Z = {0, N, 1, RangeType::DIMENSION};
 
   compute(
-      Distributions::CpuOnThreads(), X, Y, Z,
-      [&A, &B, &C](int &i, int &j, int &k) { C[i][j] += A[i][k] * B[k][j]; });
+      [&A, &B, &C](int &i, int &j, int &k) { C[i][j] += A[i][k] * B[k][j]; }, X,
+      Y, Z);
 }
 
 int main() {

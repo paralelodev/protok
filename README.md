@@ -20,9 +20,10 @@ int main() {
   // data initialization goes here ...
 
   compute(
-      {.BaseCU = ComputingUnity::CPU, .DistributionCU = ComputingUnity::THREAD},
+      [&A, &B, &C](int &i) { C[i] = A[i] + B[i]; },
       {.lowerbound = 0, .upperbound = N, .stride = 1, .type = RangeType::SPACE},
-      [&A, &B, &C](int &i) { C[i] = A[i] + B[i]; });
+      {.BaseCU = ComputingUnity::CPU, .DistributionCU = ComputingUnity::THREAD}
+      );
 }
 ```
 

@@ -32,8 +32,9 @@ struct Distributions {
 };
 
 template <typename Kernel>
-int compute(ComputingDistribution distribution, Range outerrange,
-            Kernel kernel) {
+int compute(
+    Kernel kernel, Range outerrange,
+    ComputingDistribution distribution = Distributions::CpuOnThreads()) {
   if (outerrange.type != RangeType::SPACE) {
     std::cerr << "The range must be of space type\n";
     exit(0);
@@ -77,8 +78,9 @@ int compute(ComputingDistribution distribution, Range outerrange,
 }
 
 template <typename Kernel>
-int compute(ComputingDistribution distribution, Range outerrange,
-            Range middlerange, Kernel kernel) {
+int compute(
+    Kernel kernel, Range outerrange, Range middlerange,
+    ComputingDistribution distribution = Distributions::CpuOnThreads()) {
   if (outerrange.type != RangeType::SPACE) {
     std::cerr << "The outer range must be of space type\n";
     exit(0);
@@ -146,8 +148,9 @@ int compute(ComputingDistribution distribution, Range outerrange,
 }
 
 template <typename Kernel>
-int compute(ComputingDistribution distribution, Range outerrange,
-            Range middlerange, Range innerrange, Kernel kernel) {
+int compute(
+    Kernel kernel, Range outerrange, Range middlerange, Range innerrange,
+    ComputingDistribution distribution = Distributions::CpuOnThreads()) {
   if (outerrange.type != RangeType::SPACE) {
     std::cerr << "The outer range must be of space type\n";
     exit(0);
