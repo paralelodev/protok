@@ -12,22 +12,20 @@ struct Range {
   RangeType type = RangeType::SPACE;
 };
 
-enum class ComputingUnity { NODE, CPU, CORE, ACCEL, TEAM, THREAD, VECTOR };
+enum class ComputingUnit { NODE, CPU, CORE, ACCEL, TEAM, THREAD, VECTOR };
 
 struct ComputingDistribution {
-  ComputingUnity BaseCU;
-  ComputingUnity DistributionCU;
+  ComputingUnit Source;
+  ComputingUnit Target;
 };
 
 struct Distributions {
   static ComputingDistribution CpuOnThreads() {
-    return {.BaseCU = ComputingUnity::CPU,
-            .DistributionCU = ComputingUnity::THREAD};
+    return {.Source = ComputingUnit::CPU, .Target = ComputingUnit::THREAD};
   }
 
   static ComputingDistribution AccelOnTeams() {
-    return {.BaseCU = ComputingUnity::ACCEL,
-            .DistributionCU = ComputingUnity::TEAM};
+    return {.Source = ComputingUnit::ACCEL, .Target = ComputingUnit::TEAM};
   }
 };
 
@@ -40,13 +38,13 @@ int compute(
     exit(0);
   }
 
-  switch (distribution.BaseCU) {
-  case ComputingUnity::CPU:
-    switch (distribution.DistributionCU) {
-    case ComputingUnity::THREAD:
+  switch (distribution.Source) {
+  case ComputingUnit::CPU:
+    switch (distribution.Target) {
+    case ComputingUnit::THREAD:
       PARALLELFOR_1D(outerrange)
       break;
-    case ComputingUnity::VECTOR:
+    case ComputingUnit::VECTOR:
       SIMD_1D(outerrange)
       break;
     default:
@@ -56,9 +54,9 @@ int compute(
     }
     break;
 
-  case ComputingUnity::ACCEL:
-    switch (distribution.DistributionCU) {
-    case ComputingUnity::TEAM:
+  case ComputingUnit::ACCEL:
+    switch (distribution.Target) {
+    case ComputingUnit::TEAM:
       TARGET_1D(outerrange)
       break;
     default:
@@ -89,10 +87,10 @@ int compute(
   // Set the collapse level
   int collapseLevel = middlerange.type == RangeType::DIMENSION ? 1 : 2;
 
-  switch (distribution.BaseCU) {
-  case ComputingUnity::CPU:
-    switch (distribution.DistributionCU) {
-    case ComputingUnity::THREAD:
+  switch (distribution.Source) {
+  case ComputingUnit::CPU:
+    switch (distribution.Target) {
+    case ComputingUnit::THREAD:
       switch (collapseLevel) {
       case 2:
         PARALLELFOR_2D_C2(outerrange, middlerange)
@@ -102,7 +100,7 @@ int compute(
         break;
       }
       break;
-    case ComputingUnity::VECTOR:
+    case ComputingUnit::VECTOR:
       switch (collapseLevel) {
       case 2:
         SIMD_2D_C2(outerrange, middlerange)
@@ -119,9 +117,9 @@ int compute(
     }
     break;
 
-  case ComputingUnity::ACCEL:
-    switch (distribution.DistributionCU) {
-    case ComputingUnity::TEAM:
+  case ComputingUnit::ACCEL:
+    switch (distribution.Target) {
+    case ComputingUnit::TEAM:
       switch (collapseLevel) {
       case 2:
         TARGET_2D_C2(outerrange, middlerange)
@@ -169,10 +167,10 @@ int compute(
     collapseLevel++;
   }
 
-  switch (distribution.BaseCU) {
-  case ComputingUnity::CPU:
-    switch (distribution.DistributionCU) {
-    case ComputingUnity::THREAD:
+  switch (distribution.Source) {
+  case ComputingUnit::CPU:
+    switch (distribution.Target) {
+    case ComputingUnit::THREAD:
       switch (collapseLevel) {
       case 2:
         PARALLELFOR_3D_C2(outerrange, middlerange, innerrange)
@@ -185,7 +183,7 @@ int compute(
         break;
       }
       break;
-    case ComputingUnity::VECTOR:
+    case ComputingUnit::VECTOR:
       switch (collapseLevel) {
       case 2:
         SIMD_3D_C2(outerrange, middlerange, innerrange)
@@ -205,9 +203,9 @@ int compute(
     }
     break;
 
-  case ComputingUnity::ACCEL:
-    switch (distribution.DistributionCU) {
-    case ComputingUnity::TEAM:
+  case ComputingUnit::ACCEL:
+    switch (distribution.Target) {
+    case ComputingUnit::TEAM:
       switch (collapseLevel) {
       case 2:
         TARGET_3D_C2(outerrange, middlerange, innerrange)

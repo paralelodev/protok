@@ -6,7 +6,7 @@ arch {
                     :thread:vector
 } supercomputer as default
 
-cpu kernel on thread (array A B C, scalar N){
+cpu kernel on thread (vector A B C, scalar N){
   space {
     lowerbound = 0
     upperbound = N
@@ -16,7 +16,7 @@ cpu kernel on thread (array A B C, scalar N){
   C[i] = A[i] + B[i]
 } mykernelcpu
 
-supercomputer: accel kernel on teams (array A B C, scalar N){
+supercomputer: accel kernel on teams (vector A B C, scalar N){
   space {
     lowerbound = 0
     upperbound = N
